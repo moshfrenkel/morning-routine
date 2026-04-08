@@ -216,7 +216,8 @@ body::after {
   position: relative;
 }
 .ex-illustration svg.ex-svg {
-  width: 65%; height: 65%;
+  width: 72%; height: 72%;
+  filter: url(#pencil);
 }
 .ex-illustration.active::after {
   content: '';
@@ -724,6 +725,16 @@ body::after {
 </head>
 <body>
 
+<!-- Pencil sketch SVG filter -->
+<svg style="position:absolute;width:0;height:0">
+  <defs>
+    <filter id="pencil" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.03" numOctaves="4" result="noise" seed="2"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
 <!-- ===== TIMER SCREEN ===== -->
 <div class="screen timer-screen active" id="screenTimer">
   <!-- Idle -->
@@ -934,31 +945,80 @@ body::after {
 
 <script>
 // ===== EXERCISE DATA =====
-// SVG stick figures for each exercise
+// Pencil-sketch anatomical SVG illustrations
+const S = 'class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="rgba(255,255,255,0.78)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+const A = 'stroke="var(--c-teal)" stroke-width="2"'; // active/moving limb
+const G = 'stroke="rgba(255,255,255,0.25)" stroke-dasharray="2 3"'; // ghost/motion trail
+
 const EX_SVG = {
-  armCirclesFwd: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 C70 20 75 50 55 50" stroke-dasharray="3 3"/><circle cx="55" cy="50" r="2" fill="var(--c-teal)"/><path d="M50 36 C30 20 25 50 45 50" stroke-dasharray="3 3"/></svg>`,
-  armCirclesBack: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-orange)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 C30 52 35 22 55 30" stroke-dasharray="3 3"/><circle cx="55" cy="30" r="2" fill="var(--c-orange)"/><path d="M50 36 C70 52 65 22 45 30" stroke-dasharray="3 3"/></svg>`,
-  chestHugs: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M28 32 Q50 48 72 32" opacity="0.4"/><path d="M72 32 Q50 48 28 32"/></svg>`,
-  torsoTwist: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><path d="M50 25 Q55 42 50 58"/><line x1="50" y1="58" x2="38" y2="82"/><line x1="50" y1="58" x2="62" y2="82"/><line x1="50" y1="38" x2="26" y2="34"/><line x1="50" y1="38" x2="74" y2="42"/><path d="M44 14 L56 14" stroke="var(--c-orange)" stroke-dasharray="2 2"/></svg>`,
-  goodMornings: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="72" cy="30" r="7"/><path d="M65 32 L32 42"/><line x1="32" y1="42" x2="22" y2="36"/><line x1="32" y1="42" x2="32" y2="82"/><line x1="32" y1="82" x2="22" y2="92"/><line x1="32" y1="82" x2="42" y2="92"/></svg>`,
-  hipRotR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="55"/><line x1="50" y1="38" x2="32" y2="30"/><line x1="50" y1="38" x2="68" y2="30"/><line x1="50" y1="55" x2="38" y2="82"/><path d="M50 55 Q68 62 64 78" stroke="var(--c-orange)"/><path d="M58 62 Q72 55 68 68" stroke-dasharray="3 3" opacity="0.5"/></svg>`,
-  hipRotL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="55"/><line x1="50" y1="38" x2="32" y2="30"/><line x1="50" y1="38" x2="68" y2="30"/><line x1="50" y1="55" x2="62" y2="82"/><path d="M50 55 Q32 62 36 78" stroke="var(--c-orange)"/><path d="M42 62 Q28 55 32 68" stroke-dasharray="3 3" opacity="0.5"/></svg>`,
-  squatReach: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="22" r="7"/><line x1="50" y1="29" x2="50" y2="52"/><line x1="50" y1="36" x2="34" y2="12"/><line x1="50" y1="36" x2="66" y2="12"/><path d="M50 52 Q40 68 32 78"/><path d="M50 52 Q60 68 68 78"/><circle cx="34" cy="10" r="2" fill="var(--c-orange)"/><circle cx="66" cy="10" r="2" fill="var(--c-orange)"/></svg>`,
-  prisonerElbow: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 L34 26 L38 14"/><path d="M50 36 L66 26 L62 14"/><line x1="38" y1="14" x2="62" y2="14" stroke="var(--c-orange)" stroke-dasharray="3 3"/></svg>`,
-  reversePrayer: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 L42 48 L48 52"/><path d="M50 36 L58 48 L52 52"/><line x1="48" y1="52" x2="52" y2="52" stroke="var(--c-orange)"/></svg>`,
-  highKneesT: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="55"/><line x1="50" y1="36" x2="22" y2="36"/><line x1="50" y1="36" x2="78" y2="36"/><line x1="50" y1="55" x2="40" y2="82"/><path d="M50 55 L60 55 L58 42" stroke="var(--c-orange)" stroke-width="3"/></svg>`,
-  inchworm: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="22" cy="42" r="6"/><path d="M28 44 L50 52 L72 70"/><line x1="72" y1="70" x2="62" y2="86"/><line x1="72" y1="70" x2="82" y2="86"/><line x1="22" y1="48" x2="16" y2="58"/><line x1="22" y1="48" x2="28" y2="58"/></svg>`,
-  lizardR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="28" cy="38" r="6"/><path d="M28 44 L40 54 L60 54"/><path d="M40 54 L28 78" stroke="var(--c-orange)" stroke-width="3"/><line x1="28" y1="78" x2="22" y2="78"/><path d="M60 54 L78 74"/><line x1="78" y1="74" x2="82" y2="82"/><line x1="22" y1="44" x2="18" y2="56"/><line x1="34" y1="44" x2="36" y2="56"/></svg>`,
-  pigeonR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="38" cy="30" r="6"/><line x1="38" y1="36" x2="38" y2="56"/><path d="M38 56 L26 62 L34 62" stroke="var(--c-orange)"/><path d="M38 56 L62 68 L74 78"/><line x1="38" y1="42" x2="28" y2="36"/><line x1="38" y1="42" x2="48" y2="36"/></svg>`,
-  butterfly: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="26" r="7"/><line x1="50" y1="33" x2="50" y2="58"/><path d="M50 58 L34 68 L50 72" stroke="var(--c-orange)"/><path d="M50 58 L66 68 L50 72" stroke="var(--c-orange)"/><path d="M34 68 L24 58" stroke-dasharray="3 3" opacity="0.5"/><path d="M66 68 L76 58" stroke-dasharray="3 3" opacity="0.5"/></svg>`,
-  halfStraddleR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="30" r="6"/><path d="M50 36 L56 48 L62 56"/><path d="M50 56 L30 72" stroke="var(--c-orange)"/><path d="M50 56 L74 68"/><path d="M56 42 L70 36" stroke-dasharray="3 3"/><circle cx="70" cy="36" r="2" fill="var(--c-teal)"/></svg>`,
-  halfStraddleL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="30" r="6"/><path d="M50 36 L44 48 L38 56"/><path d="M50 56 L70 72" stroke="var(--c-orange)"/><path d="M50 56 L26 68"/><path d="M44 42 L30 36" stroke-dasharray="3 3"/><circle cx="30" cy="36" r="2" fill="var(--c-teal)"/></svg>`,
-  kneelingQuad: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="42" cy="22" r="6"/><line x1="42" y1="28" x2="42" y2="52"/><path d="M42 52 L42 72 L42 82"/><path d="M42 52 L58 72 L68 62" stroke="var(--c-orange)"/><line x1="42" y1="38" x2="30" y2="32"/><path d="M42 38 L56 30 L62 22"/></svg>`,
-  lizardL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="72" cy="38" r="6"/><path d="M72 44 L60 54 L40 54"/><path d="M60 54 L72 78" stroke="var(--c-orange)" stroke-width="3"/><line x1="72" y1="78" x2="78" y2="78"/><path d="M40 54 L22 74"/><line x1="22" y1="74" x2="18" y2="82"/><line x1="78" y1="44" x2="82" y2="56"/><line x1="66" y1="44" x2="64" y2="56"/></svg>`,
-  pigeonL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="62" cy="30" r="6"/><line x1="62" y1="36" x2="62" y2="56"/><path d="M62 56 L74 62 L66 62" stroke="var(--c-orange)"/><path d="M62 56 L38 68 L26 78"/><line x1="62" y1="42" x2="72" y2="36"/><line x1="62" y1="42" x2="52" y2="36"/></svg>`,
-  kneesToChest: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="28" cy="50" r="6"/><line x1="34" y1="50" x2="62" y2="50"/><path d="M62 50 L68 38 L56 34" stroke="var(--c-orange)"/><path d="M62 50 L68 62 L56 66" stroke="var(--c-orange)"/><path d="M34 50 L40 40"/><path d="M34 50 L40 60"/></svg>`,
-  spinalTwistR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="24" cy="50" r="6"/><line x1="30" y1="50" x2="60" y2="50"/><line x1="60" y1="50" x2="76" y2="42"/><path d="M60 50 L68 66 L54 74" stroke="var(--c-orange)"/><line x1="24" y1="44" x2="20" y2="32"/><line x1="24" y1="56" x2="20" y2="68"/></svg>`,
-  spinalTwistL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="24" cy="50" r="6"/><line x1="30" y1="50" x2="60" y2="50"/><line x1="60" y1="50" x2="76" y2="58"/><path d="M60 50 L68 34 L54 26" stroke="var(--c-orange)"/><line x1="24" y1="44" x2="20" y2="32"/><line x1="24" y1="56" x2="20" y2="68"/></svg>`,
+  // 1. Forward Arm Circles — standing, arms out with forward circular arrows
+  armCirclesFwd: `<svg ${S}><circle cx="50" cy="16" r="5.5"/><line x1="50" y1="21" x2="50" y2="48"/><line x1="50" y1="48" x2="38" y2="76"/><line x1="50" y1="48" x2="62" y2="76"/><path d="M50 30 L30 22" ${A}/><path d="M50 30 L70 22" ${A}/><path d="M30 22 C18 30 18 46 30 50" ${G}/><path d="M28 46 L30 50 L34 47" stroke="var(--c-teal)" stroke-width="1.2"/><path d="M70 22 C82 30 82 46 70 50" ${G}/><path d="M72 46 L70 50 L66 47" stroke="var(--c-teal)" stroke-width="1.2"/></svg>`,
+
+  // 2. Backward Arm Circles
+  armCirclesBack: `<svg ${S}><circle cx="50" cy="16" r="5.5"/><line x1="50" y1="21" x2="50" y2="48"/><line x1="50" y1="48" x2="38" y2="76"/><line x1="50" y1="48" x2="62" y2="76"/><path d="M50 30 L30 38" ${A}/><path d="M50 30 L70 38" ${A}/><path d="M30 38 C18 30 18 14 30 10" ${G}/><path d="M28 14 L30 10 L34 13" stroke="var(--c-teal)" stroke-width="1.2"/><path d="M70 38 C82 30 82 14 70 10" ${G}/><path d="M72 14 L70 10 L66 13" stroke="var(--c-teal)" stroke-width="1.2"/></svg>`,
+
+  // 3. Dynamic Chest Hugs — arms crossing over chest then opening
+  chestHugs: `<svg ${S}><circle cx="50" cy="16" r="5.5"/><line x1="50" y1="21" x2="50" y2="48"/><line x1="50" y1="48" x2="38" y2="76"/><line x1="50" y1="48" x2="62" y2="76"/><path d="M50 30 L34 40 L28 34" ${A}/><path d="M50 30 L66 40 L72 34" ${A}/><path d="M50 30 L24 28" ${G}/><path d="M50 30 L76 28" ${G}/></svg>`,
+
+  // 4. Standing Torso Twist — feet planted, upper body rotated, arms spread
+  torsoTwist: `<svg ${S}><circle cx="52" cy="16" r="5.5"/><path d="M52 21 C54 34 52 42 50 48"/><line x1="50" y1="48" x2="40" y2="76"/><line x1="50" y1="48" x2="60" y2="76"/><path d="M52 30 L28 24" ${A}/><path d="M52 30 L72 40" ${A}/><path d="M46 14 Q52 10 58 14" ${G}/></svg>`,
+
+  // 5. Good Mornings — hinged at hips, flat back, legs straight
+  goodMornings: `<svg ${S}><circle cx="76" cy="34" r="5.5"/><path d="M71 36 L36 44" ${A}/><line x1="36" y1="44" x2="20" y2="38"/><line x1="36" y1="44" x2="36" y2="76"/><line x1="36" y1="76" x2="28" y2="88"/><line x1="36" y1="76" x2="44" y2="88"/><path d="M36 44 L36 26" ${G}/><circle cx="36" cy="22" r="4" ${G}/></svg>`,
+
+  // 6. Standing Right Hip Rotation — left foot planted, right knee up rotating out
+  hipRotR: `<svg ${S}><circle cx="46" cy="14" r="5.5"/><line x1="46" y1="19" x2="46" y2="46"/><line x1="46" y1="30" x2="32" y2="24"/><line x1="46" y1="30" x2="60" y2="24"/><line x1="46" y1="46" x2="38" y2="76"/><path d="M46 46 L58 46 L64 58" ${A}/><line x1="64" y1="58" x2="64" y2="72" ${A}/><path d="M56 46 C70 40 76 52 68 62" ${G}/></svg>`,
+
+  // 7. Standing Left Hip Rotation
+  hipRotL: `<svg ${S}><circle cx="54" cy="14" r="5.5"/><line x1="54" y1="19" x2="54" y2="46"/><line x1="54" y1="30" x2="40" y2="24"/><line x1="54" y1="30" x2="68" y2="24"/><line x1="54" y1="46" x2="62" y2="76"/><path d="M54 46 L42 46 L36 58" ${A}/><line x1="36" y1="58" x2="36" y2="72" ${A}/><path d="M44 46 C30 40 24 52 32 62" ${G}/></svg>`,
+
+  // 8. Squat and Reach — deep squat, arms reaching up
+  squatReach: `<svg ${S}><circle cx="50" cy="20" r="5.5"/><line x1="50" y1="25" x2="50" y2="50"/><path d="M50 50 Q40 62 34 72 L30 80"/><path d="M50 50 Q60 62 66 72 L70 80"/><path d="M50 30 L40 10" ${A}/><path d="M50 30 L60 10" ${A}/><circle cx="40" cy="8" r="1.5" fill="var(--c-teal)"/><circle cx="60" cy="8" r="1.5" fill="var(--c-teal)"/></svg>`,
+
+  // 9. Prisoner Elbow Touches — hands behind head, elbows pointing forward/touching
+  prisonerElbow: `<svg ${S}><circle cx="50" cy="16" r="5.5"/><line x1="50" y1="21" x2="50" y2="48"/><line x1="50" y1="48" x2="38" y2="76"/><line x1="50" y1="48" x2="62" y2="76"/><path d="M50 30 L38 22 L42 14 L50 10" ${A}/><path d="M50 30 L62 22 L58 14 L50 10" ${A}/><path d="M38 22 L44 28" stroke="var(--c-teal)" stroke-width="1.2"/><path d="M62 22 L56 28" stroke="var(--c-teal)" stroke-width="1.2"/></svg>`,
+
+  // 10. Reverse Prayer — standing, palms together behind back between shoulder blades
+  reversePrayer: `<svg ${S}><circle cx="50" cy="16" r="5.5"/><line x1="50" y1="21" x2="50" y2="48"/><line x1="50" y1="48" x2="38" y2="76"/><line x1="50" y1="48" x2="62" y2="76"/><path d="M50 30 L44 36 L46 44 L50 44" ${A}/><path d="M50 30 L56 36 L54 44 L50 44" ${A}/><line x1="49" y1="38" x2="51" y2="38" stroke="var(--c-teal)" stroke-width="2.5"/><line x1="49" y1="42" x2="51" y2="42" stroke="var(--c-teal)" stroke-width="2.5"/></svg>`,
+
+  // 11. High Knees with T-Arms — one knee high, arms stretched out in T
+  highKneesT: `<svg ${S}><circle cx="50" cy="14" r="5.5"/><line x1="50" y1="19" x2="50" y2="46"/><line x1="50" y1="28" x2="22" y2="28"/><line x1="50" y1="28" x2="78" y2="28"/><line x1="50" y1="46" x2="40" y2="76"/><path d="M50 46 L60 46 L56 32" ${A} stroke-width="2.2"/></svg>`,
+
+  // 12. Inchworm — hands on floor, body in inverted V walking hands out
+  inchworm: `<svg ${S}><circle cx="26" cy="36" r="5"/><path d="M30 40 L40 50 L56 60 L70 64"/><line x1="70" y1="64" x2="62" y2="80"/><line x1="70" y1="64" x2="78" y2="80"/><path d="M26 42 L20 54" ${A}/><path d="M26 42 L32 54" ${A}/><path d="M20 56 L18 58" stroke="var(--c-teal)" stroke-width="1"/><path d="M32 56 L34 58" stroke="var(--c-teal)" stroke-width="1"/></svg>`,
+
+  // 13. Right Lizard Lunge — deep lunge, right foot forward outside right hand, torso low
+  lizardR: `<svg ${S}><circle cx="24" cy="36" r="5"/><path d="M28 40 L38 52 L54 56"/><path d="M38 52 L30 74 L24 76" ${A} stroke-width="2.2"/><line x1="54" y1="56" x2="78" y2="72"/><line x1="78" y1="72" x2="84" y2="78"/><path d="M24 42 L18 54"/><path d="M28 42 L34 54"/></svg>`,
+
+  // 14. Right Pigeon Pose — seated, right shin across front, left leg extended back
+  pigeonR: `<svg ${S}><circle cx="36" cy="28" r="5"/><path d="M36 33 L36 52"/><line x1="36" y1="40" x2="26" y2="34"/><line x1="36" y1="40" x2="46" y2="34"/><path d="M36 52 L24 60 L34 64 L40 60" ${A}/><path d="M36 52 L60 64 L80 72"/></svg>`,
+
+  // 15. Seated Butterfly — seated, feet together, knees out to sides, hands on feet
+  butterfly: `<svg ${S}><circle cx="50" cy="24" r="5.5"/><path d="M50 29 L50 54"/><path d="M50 54 L36 64 L44 68 L50 64" ${A}/><path d="M50 54 L64 64 L56 68 L50 64" ${A}/><path d="M36 64 L24 54" ${G}/><path d="M64 64 L76 54" ${G}/><path d="M50 40 L40 64"/><path d="M50 40 L60 64"/></svg>`,
+
+  // 16. Right Half Straddle — seated, legs apart, reaching right to right foot
+  halfStraddleR: `<svg ${S}><circle cx="58" cy="30" r="5"/><path d="M56 35 L50 50"/><path d="M50 50 L28 66"/><path d="M50 50 L76 62" ${A}/><path d="M56 36 L70 30 L78 34" ${A}/><circle cx="78" cy="34" r="1.5" fill="var(--c-teal)"/></svg>`,
+
+  // 17. Left Half Straddle
+  halfStraddleL: `<svg ${S}><circle cx="42" cy="30" r="5"/><path d="M44 35 L50 50"/><path d="M50 50 L72 66"/><path d="M50 50 L24 62" ${A}/><path d="M44 36 L30 30 L22 34" ${A}/><circle cx="22" cy="34" r="1.5" fill="var(--c-teal)"/></svg>`,
+
+  // 18. Kneeling Quad Stretch — kneeling on left knee, pulling right foot to glutes with right hand
+  kneelingQuad: `<svg ${S}><circle cx="40" cy="20" r="5"/><path d="M40 25 L40 48"/><path d="M40 48 L40 68 L38 78"/><path d="M40 48 L56 64 L64 56" ${A}/><path d="M40 34 L30 28"/><path d="M40 34 L52 28 L60 34 L64 56" ${A}/></svg>`,
+
+  // 19. Left Lizard Lunge
+  lizardL: `<svg ${S}><circle cx="76" cy="36" r="5"/><path d="M72 40 L62 52 L46 56"/><path d="M62 52 L70 74 L76 76" ${A} stroke-width="2.2"/><line x1="46" y1="56" x2="22" y2="72"/><line x1="22" y1="72" x2="16" y2="78"/><path d="M76 42 L82 54"/><path d="M72 42 L66 54"/></svg>`,
+
+  // 20. Left Pigeon Pose
+  pigeonL: `<svg ${S}><circle cx="64" cy="28" r="5"/><path d="M64 33 L64 52"/><line x1="64" y1="40" x2="74" y2="34"/><line x1="64" y1="40" x2="54" y2="34"/><path d="M64 52 L76 60 L66 64 L60 60" ${A}/><path d="M64 52 L40 64 L20 72"/></svg>`,
+
+  // 21. Knees to Chest — lying on back, hugging both knees to chest
+  kneesToChest: `<svg ${S}><circle cx="22" cy="50" r="5"/><path d="M27 50 L56 50"/><path d="M56 50 L64 38 L54 32" ${A}/><path d="M56 50 L64 62 L54 68" ${A}/><path d="M30 46 L42 38" ${A}/><path d="M30 54 L42 62" ${A}/></svg>`,
+
+  // 22. Supine Spinal Twist Right — lying, arms out, both knees dropped to right
+  spinalTwistR: `<svg ${S}><circle cx="22" cy="48" r="5"/><path d="M27 48 L58 48"/><path d="M22 42 L16 28"/><path d="M22 54 L16 68"/><path d="M58 48 L68 60 L60 70" ${A}/><path d="M58 48 L74 44"/></svg>`,
+
+  // 23. Supine Spinal Twist Left
+  spinalTwistL: `<svg ${S}><circle cx="22" cy="48" r="5"/><path d="M27 48 L58 48"/><path d="M22 42 L16 28"/><path d="M22 54 L16 68"/><path d="M58 48 L68 36 L60 26" ${A}/><path d="M58 48 L74 52"/></svg>`,
 };
 
 const DEFAULT_EXERCISES = [
