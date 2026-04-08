@@ -567,13 +567,121 @@ body::after {
   font-size: var(--t-section); font-weight: 700;
   margin-bottom: 14px;
 }
-.spotify-wrap {
-  border-radius: var(--radius-m);
-  overflow: hidden;
-  border: 1px solid var(--c-border);
-  background: var(--c-bg-card);
+
+.spotify-login-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 16px 24px;
+  background: #1DB954; color: #fff;
+  border: none; border-radius: var(--radius-m);
+  font-family: inherit; font-size: var(--t-body); font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
 }
-.spotify-wrap iframe { width: 100%; border: none; display: block; }
+.spotify-login-btn:hover { background: #1ed760; }
+.spotify-login-btn svg { width: 24px; height: 24px; }
+
+.sp-player {
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-m);
+  padding: 20px;
+}
+
+.sp-now-playing {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 20px;
+}
+.sp-album-art {
+  width: 72px; height: 72px;
+  border-radius: var(--radius-s);
+  object-fit: cover;
+  background: var(--c-bg-input);
+  flex-shrink: 0;
+}
+.sp-track-info { flex: 1; min-width: 0; }
+.sp-track-name {
+  font-size: var(--t-body); font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sp-track-artist {
+  font-size: var(--t-small); color: var(--c-text-mid);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.sp-progress-wrap {
+  margin-bottom: 16px; cursor: pointer;
+  padding: 4px 0;
+}
+.sp-progress-bar {
+  height: 4px; background: var(--c-bg-input);
+  border-radius: 2px; position: relative; overflow: hidden;
+}
+.sp-progress-fill {
+  height: 100%; background: var(--c-teal);
+  border-radius: 2px; width: 0%; transition: width 0.3s linear;
+}
+.sp-progress-times {
+  display: flex; justify-content: space-between;
+  font-size: var(--t-tiny); color: var(--c-text-dim);
+  margin-top: 4px;
+}
+
+.sp-controls {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.sp-ctrl-btn {
+  background: none; border: none; color: var(--c-text-mid);
+  cursor: pointer; padding: 8px; border-radius: 50%;
+  transition: color 0.2s, background 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-ctrl-btn:hover { color: var(--c-text); background: rgba(255,255,255,0.06); }
+.sp-ctrl-btn svg { width: 24px; height: 24px; }
+.sp-ctrl-btn.sp-play-btn {
+  background: var(--c-teal); color: #fff;
+  width: 52px; height: 52px; border-radius: 50%;
+}
+.sp-ctrl-btn.sp-play-btn:hover { background: var(--c-teal-light); }
+.sp-ctrl-btn.sp-play-btn svg { width: 28px; height: 28px; }
+.sp-ctrl-btn.active { color: var(--c-teal); }
+
+.sp-volume-wrap {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 16px;
+}
+.sp-volume-wrap svg { width: 20px; height: 20px; color: var(--c-text-dim); flex-shrink: 0; }
+.sp-volume-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; background: var(--c-bg-input);
+  border-radius: 2px; outline: none;
+}
+.sp-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  background: var(--c-teal); border-radius: 50%; cursor: pointer;
+}
+
+.sp-playlist-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  margin-top: 16px;
+}
+.sp-playlist-card {
+  background: var(--c-bg-input); border: 1px solid var(--c-border);
+  border-radius: var(--radius-s); padding: 14px;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+  text-align: center;
+}
+.sp-playlist-card:hover, .sp-playlist-card.active {
+  border-color: var(--c-teal); background: var(--c-teal-glow);
+}
+.sp-playlist-card .sp-pl-emoji { font-size: 1.8rem; margin-bottom: 6px; }
+.sp-playlist-card .sp-pl-name {
+  font-size: var(--t-small); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.sp-status {
+  text-align: center; padding: 12px;
+  font-size: var(--t-small); color: var(--c-text-dim);
+}
 
 .music-note {
   background: var(--c-bg-card);
@@ -583,6 +691,7 @@ body::after {
   padding: 14px 18px;
   font-size: var(--t-small); color: var(--c-text-mid);
   line-height: 1.7;
+  margin-top: 16px;
 }
 
 /* ===== REVEAL ANIMATIONS ===== */
@@ -639,12 +748,24 @@ body::after {
       </div>
       <div class="next-label" id="nextLabel">הבא: <strong>סיבובי ידיים לאחור</strong></div>
     </div>
-    <div class="workout-player">
-      <iframe id="spotifyPlayer"
-        src="https://open.spotify.com/embed/playlist/37i9dQZF1DWTbBhNRbGJpF?utm_source=generator&theme=0"
-        height="152" allowfullscreen
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy"></iframe>
+    <div class="workout-player" id="workoutMiniPlayer" style="display:none">
+      <div class="sp-now-playing">
+        <img class="sp-album-art" id="miniAlbumArt" src="" alt="">
+        <div class="sp-track-info">
+          <div class="sp-track-name" id="miniTrackName">—</div>
+          <div class="sp-track-artist" id="miniTrackArtist">—</div>
+        </div>
+        <button class="sp-ctrl-btn" onclick="spotifyPrev()" aria-label="שיר קודם">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
+        <button class="sp-ctrl-btn sp-play-btn" onclick="spotifyToggle()" id="miniPlayBtn" aria-label="נגן/עצור">
+          <svg id="miniIconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="miniIconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+        </button>
+        <button class="sp-ctrl-btn" onclick="spotifyNext()" aria-label="שיר הבא">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4.5 12l8.5-6v12z" transform="scale(-1,1) translate(-24,0)"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -686,17 +807,68 @@ body::after {
 <!-- ===== MUSIC SCREEN ===== -->
 <div class="screen" id="screenMusic">
   <h2 class="screen-header">מוזיקה</h2>
-  <div class="music-section">
-    <h3>Chilled R&B</h3>
-    <div class="spotify-wrap">
-      <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWTbBhNRbGJpF?utm_source=generator&theme=0"
-        height="380" allowfullscreen
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy"></iframe>
+
+  <!-- Login state -->
+  <div id="spLoginView">
+    <button class="spotify-login-btn" onclick="spotifyLogin()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381C8.64 5.801 15.6 6.06 20.04 8.7c.5.3.7 1.02.4 1.56-.301.42-1.02.599-1.459.42z"/></svg>
+      התחבר לספוטיפיי
+    </button>
+    <div class="music-note">
+      נדרש חשבון Spotify Premium לשליטה מלאה במוזיקה.
     </div>
   </div>
-  <div class="music-note">
-    תפעיל את המוזיקה בספוטיפיי, ואז חזור לאפליקציה להתחיל את האימון. שני הדברים רצים במקביל.
+
+  <!-- Player state -->
+  <div id="spPlayerView" style="display:none">
+    <div class="sp-player">
+      <div class="sp-now-playing">
+        <img class="sp-album-art" id="spAlbumArt" src="" alt="">
+        <div class="sp-track-info">
+          <div class="sp-track-name" id="spTrackName">לא מנגן כרגע</div>
+          <div class="sp-track-artist" id="spTrackArtist">—</div>
+        </div>
+      </div>
+
+      <div class="sp-progress-wrap" id="spProgressWrap">
+        <div class="sp-progress-bar">
+          <div class="sp-progress-fill" id="spProgressFill"></div>
+        </div>
+        <div class="sp-progress-times">
+          <span id="spTimeNow">0:00</span>
+          <span id="spTimeTotal">0:00</span>
+        </div>
+      </div>
+
+      <div class="sp-controls">
+        <button class="sp-ctrl-btn" id="spShuffleBtn" onclick="spotifyShuffle()" aria-label="ערבוב">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+        </button>
+        <button class="sp-ctrl-btn" onclick="spotifyPrev()" aria-label="שיר קודם">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
+        <button class="sp-ctrl-btn sp-play-btn" onclick="spotifyToggle()" id="spPlayBtn" aria-label="נגן/עצור">
+          <svg id="spIconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="spIconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+        </button>
+        <button class="sp-ctrl-btn" onclick="spotifyNext()" aria-label="שיר הבא">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4.5 12l8.5-6v12z" transform="scale(-1,1) translate(-24,0)"/></svg>
+        </button>
+        <button class="sp-ctrl-btn" id="spRepeatBtn" onclick="spotifyRepeat()" aria-label="חזרה">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </button>
+      </div>
+
+      <div class="sp-volume-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <input type="range" class="sp-volume-slider" id="spVolume" min="0" max="100" value="70" oninput="spotifyVolume(this.value)">
+      </div>
+    </div>
+
+    <div class="music-section" style="margin-top:20px">
+      <h3>פלייליסטים לאימון</h3>
+      <div class="sp-playlist-grid" id="spPlaylistGrid"></div>
+    </div>
   </div>
 </div>
 
@@ -1226,6 +1398,247 @@ function calcStreak() {
 
 // ===== INIT =====
 updateIdle();
+
+// ===== SPOTIFY WEB PLAYBACK SDK =====
+const SP_CLIENT_ID = '4b448c71c0034789a61dbe7f6e072c02';
+const SP_REDIRECT = window.location.origin + window.location.pathname;
+const SP_SCOPES = 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative';
+
+const WORKOUT_PLAYLISTS = [
+  { name: 'Workout Beats', uri: 'spotify:playlist:37i9dQZF1DX76Wlfdnj7AP', emoji: '🔥' },
+  { name: 'Beast Mode', uri: 'spotify:playlist:37i9dQZF1DX70RN3TfnE9m', emoji: '💪' },
+  { name: 'Power Workout', uri: 'spotify:playlist:37i9dQZF1DX20hMBPnabgN', emoji: '⚡' },
+  { name: 'Motivation Mix', uri: 'spotify:playlist:37i9dQZF1DXdxcBWuJkbcy', emoji: '🚀' },
+  { name: 'Chilled R&B', uri: 'spotify:playlist:37i9dQZF1DWTbBhNRbGJpF', emoji: '🎵' },
+  { name: 'Morning Motivation', uri: 'spotify:playlist:37i9dQZF1DXc4lzDkZgMhq', emoji: '☀️' },
+];
+
+let spPlayer = null;
+let spDeviceId = null;
+let spToken = null;
+let spIsPlaying = false;
+let spShuffle = false;
+let spRepeatMode = 0; // 0=off, 1=context, 2=track
+let spProgressInterval = null;
+let spCurrentPosition = 0;
+let spCurrentDuration = 0;
+
+function spotifyLogin() {
+  const params = new URLSearchParams({
+    client_id: SP_CLIENT_ID,
+    response_type: 'token',
+    redirect_uri: SP_REDIRECT,
+    scope: SP_SCOPES,
+    show_dialog: 'false'
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
+}
+
+function getTokenFromHash() {
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const token = params.get('access_token');
+  if (token) {
+    localStorage.setItem('sp_token', token);
+    const expires = Date.now() + (parseInt(params.get('expires_in') || '3600') * 1000);
+    localStorage.setItem('sp_token_expires', expires);
+    window.history.replaceState(null, '', window.location.pathname);
+    return token;
+  }
+  const saved = localStorage.getItem('sp_token');
+  const exp = localStorage.getItem('sp_token_expires');
+  if (saved && exp && Date.now() < parseInt(exp)) return saved;
+  return null;
+}
+
+function initSpotifySDK(token) {
+  spToken = token;
+  const script = document.createElement('script');
+  script.src = 'https://sdk.scdn.co/spotify-player.js';
+  document.body.appendChild(script);
+
+  window.onSpotifyWebPlaybackSDKReady = () => {
+    spPlayer = new Spotify.Player({
+      name: 'רוטינת בוקר',
+      getOAuthToken: cb => cb(spToken),
+      volume: 0.7
+    });
+
+    spPlayer.addListener('ready', ({ device_id }) => {
+      spDeviceId = device_id;
+      transferPlayback(device_id);
+      showPlayerUI();
+      renderPlaylists();
+    });
+
+    spPlayer.addListener('not_ready', () => {
+      console.log('Spotify device offline');
+    });
+
+    spPlayer.addListener('player_state_changed', state => {
+      if (!state) return;
+      updatePlayerState(state);
+    });
+
+    spPlayer.addListener('initialization_error', ({ message }) => console.error('Init error:', message));
+    spPlayer.addListener('authentication_error', ({ message }) => {
+      console.error('Auth error:', message);
+      localStorage.removeItem('sp_token');
+      localStorage.removeItem('sp_token_expires');
+      showLoginUI();
+    });
+    spPlayer.addListener('account_error', ({ message }) => console.error('Account error:', message));
+
+    spPlayer.connect();
+  };
+}
+
+function transferPlayback(deviceId) {
+  fetch('https://api.spotify.com/v1/me/player', {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + spToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ device_ids: [deviceId], play: false })
+  });
+}
+
+function showLoginUI() {
+  document.getElementById('spLoginView').style.display = '';
+  document.getElementById('spPlayerView').style.display = 'none';
+  document.getElementById('workoutMiniPlayer').style.display = 'none';
+}
+
+function showPlayerUI() {
+  document.getElementById('spLoginView').style.display = 'none';
+  document.getElementById('spPlayerView').style.display = '';
+}
+
+function updatePlayerState(state) {
+  const track = state.track_window.current_track;
+  spIsPlaying = !state.paused;
+  spCurrentPosition = state.position;
+  spCurrentDuration = state.duration;
+
+  // Main player
+  document.getElementById('spTrackName').textContent = track.name;
+  document.getElementById('spTrackArtist').textContent = track.artists.map(a => a.name).join(', ');
+  const art = track.album.images[0]?.url || '';
+  document.getElementById('spAlbumArt').src = art;
+
+  // Mini player in workout
+  document.getElementById('miniTrackName').textContent = track.name;
+  document.getElementById('miniTrackArtist').textContent = track.artists.map(a => a.name).join(', ');
+  document.getElementById('miniAlbumArt').src = art;
+  document.getElementById('workoutMiniPlayer').style.display = '';
+
+  // Play/pause icons
+  updatePlayIcons(spIsPlaying);
+
+  // Shuffle & repeat
+  spShuffle = state.shuffle;
+  document.getElementById('spShuffleBtn').classList.toggle('active', spShuffle);
+  spRepeatMode = state.repeat_mode;
+  document.getElementById('spRepeatBtn').classList.toggle('active', spRepeatMode > 0);
+
+  // Progress
+  updateProgress();
+  clearInterval(spProgressInterval);
+  if (spIsPlaying) {
+    spProgressInterval = setInterval(() => {
+      spCurrentPosition += 300;
+      updateProgress();
+    }, 300);
+  }
+}
+
+function updatePlayIcons(playing) {
+  document.getElementById('spIconPlay').style.display = playing ? 'none' : '';
+  document.getElementById('spIconPause').style.display = playing ? '' : 'none';
+  document.getElementById('miniIconPlay').style.display = playing ? 'none' : '';
+  document.getElementById('miniIconPause').style.display = playing ? '' : 'none';
+}
+
+function updateProgress() {
+  if (spCurrentDuration <= 0) return;
+  const pct = Math.min(100, (spCurrentPosition / spCurrentDuration) * 100);
+  document.getElementById('spProgressFill').style.width = pct + '%';
+  document.getElementById('spTimeNow').textContent = msToTime(spCurrentPosition);
+  document.getElementById('spTimeTotal').textContent = msToTime(spCurrentDuration);
+}
+
+function msToTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+// Progress seek
+document.getElementById('spProgressWrap')?.addEventListener('click', e => {
+  if (!spCurrentDuration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  const pos = Math.floor(pct * spCurrentDuration);
+  spPlayer?.seek(pos);
+});
+
+function spotifyToggle() { spPlayer?.togglePlay(); }
+function spotifyNext() { spPlayer?.nextTrack(); }
+function spotifyPrev() { spPlayer?.previousTrack(); }
+
+function spotifyVolume(val) {
+  spPlayer?.setVolume(val / 100);
+}
+
+function spotifyShuffle() {
+  spShuffle = !spShuffle;
+  fetch(`https://api.spotify.com/v1/me/player/shuffle?state=${spShuffle}`, {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + spToken }
+  });
+  document.getElementById('spShuffleBtn').classList.toggle('active', spShuffle);
+}
+
+function spotifyRepeat() {
+  spRepeatMode = (spRepeatMode + 1) % 3;
+  const modes = ['off', 'context', 'track'];
+  fetch(`https://api.spotify.com/v1/me/player/repeat?state=${modes[spRepeatMode]}`, {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + spToken }
+  });
+  document.getElementById('spRepeatBtn').classList.toggle('active', spRepeatMode > 0);
+}
+
+function playPlaylist(uri) {
+  if (!spDeviceId) return;
+  fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spDeviceId}`, {
+    method: 'PUT',
+    headers: { 'Authorization': 'Bearer ' + spToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ context_uri: uri })
+  });
+  // Highlight active
+  document.querySelectorAll('.sp-playlist-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.uri === uri);
+  });
+}
+
+function renderPlaylists() {
+  const grid = document.getElementById('spPlaylistGrid');
+  grid.innerHTML = '';
+  WORKOUT_PLAYLISTS.forEach(pl => {
+    const card = document.createElement('div');
+    card.className = 'sp-playlist-card';
+    card.dataset.uri = pl.uri;
+    card.innerHTML = `<div class="sp-pl-emoji">${pl.emoji}</div><div class="sp-pl-name">${pl.name}</div>`;
+    card.onclick = () => playPlaylist(pl.uri);
+    grid.appendChild(card);
+  });
+}
+
+// Auto-init on load
+(function initSpotify() {
+  const token = getTokenFromHash();
+  if (token) {
+    initSpotifySDK(token);
+  }
+})();
 </script>
 </body>
 </html>
