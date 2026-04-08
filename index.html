@@ -729,7 +729,7 @@ body::after {
   <div class="idle-view" id="idleView">
     <div class="idle-greeting rv on" id="idleGreeting">בוקר טוב, מוש</div>
     <h1 class="idle-title rv on rv-d1">רוטינת<br><span class="accent">בוקר</span></h1>
-    <p class="idle-stats rv on rv-d2" id="idleStats">23 exercises &bull; ~12 min</p>
+    <p class="idle-stats rv on rv-d2" id="idleStats">23 תרגילים &bull; ~12 דקות</p>
     <button class="start-btn rv on rv-d3" onclick="startRoutine()">יאללה מתחילים</button>
     <div class="idle-last-workout rv on rv-d3" id="idleLastWorkout"></div>
   </div>
@@ -740,7 +740,7 @@ body::after {
       <div class="ex-progress-bar"><div class="ex-progress-fill" id="progressFill"></div></div>
       <div class="ex-counter" id="exCounter">תרגיל 1 מתוך 25</div>
       <div class="ex-illustration active" id="exIllustration"></div>
-      <div class="ex-name" id="exName">Forward Arm Circles</div>
+      <div class="ex-name" id="exName">סיבובי ידיים לפנים</div>
       <div class="timer-container">
         <svg class="timer-svg" viewBox="0 0 160 160">
           <circle class="timer-track" cx="80" cy="80" r="70"/>
@@ -749,7 +749,7 @@ body::after {
         </svg>
         <div class="timer-digits" id="timerText">30</div>
       </div>
-      <div class="next-label" id="nextLabel">Next: <strong>Backward Arm Circles</strong></div>
+      <div class="next-label" id="nextLabel">הבא: <strong>סיבובי ידיים לאחור</strong></div>
     </div>
     <div class="workout-player" id="workoutMiniPlayer" style="display:none">
       <div class="sp-now-playing">
@@ -871,6 +871,10 @@ body::after {
     <div class="music-section" style="margin-top:20px">
       <h3>פלייליסטים לאימון</h3>
       <div class="sp-playlist-grid" id="spPlaylistGrid"></div>
+      <button class="spotify-login-btn" style="margin-top:16px;background:var(--c-teal)" id="createPlaylistBtn" onclick="createMorningPlaylist()">
+        יצירת פלייליסט R&B לאימון בוקר
+      </button>
+      <div class="sp-status" id="createPlaylistStatus"></div>
     </div>
   </div>
 </div>
@@ -957,29 +961,29 @@ const EX_SVG = {
 };
 
 const DEFAULT_EXERCISES = [
-  { name: "Forward Arm Circles", duration: 30, svg: 'armCirclesFwd' },
-  { name: "Backward Arm Circles", duration: 30, svg: 'armCirclesBack' },
-  { name: "Dynamic Chest Hugs", duration: 30, svg: 'chestHugs' },
-  { name: "Standing Torso Twist", duration: 30, svg: 'torsoTwist' },
-  { name: "Bodyweight Good Mornings", duration: 30, svg: 'goodMornings' },
-  { name: "Standing Right Hip Rotation", duration: 30, svg: 'hipRotR' },
-  { name: "Standing Left Hip Rotation", duration: 30, svg: 'hipRotL' },
-  { name: "Squat and Reach", duration: 30, svg: 'squatReach' },
-  { name: "Prisoner Elbow Touches", duration: 30, svg: 'prisonerElbow' },
-  { name: "Reverse Prayer Stretch", duration: 30, svg: 'reversePrayer' },
-  { name: "High Knees with T-Arms", duration: 30, svg: 'highKneesT' },
-  { name: "Inchworm Walkouts", duration: 30, svg: 'inchworm' },
-  { name: "Right Lizard Lunge", duration: 30, svg: 'lizardR' },
-  { name: "Right Pigeon Pose", duration: 30, svg: 'pigeonR' },
-  { name: "Seated Butterfly Stretch", duration: 30, svg: 'butterfly' },
-  { name: "Right Half Straddle", duration: 30, svg: 'halfStraddleR' },
-  { name: "Left Half Straddle", duration: 30, svg: 'halfStraddleL' },
-  { name: "Kneeling Quad Stretch", duration: 30, svg: 'kneelingQuad' },
-  { name: "Left Lizard Lunge", duration: 30, svg: 'lizardL' },
-  { name: "Left Pigeon Pose", duration: 30, svg: 'pigeonL' },
-  { name: "Knees to Chest", duration: 30, svg: 'kneesToChest' },
-  { name: "Spinal Twist (Right)", duration: 30, svg: 'spinalTwistR' },
-  { name: "Spinal Twist (Left)", duration: 30, svg: 'spinalTwistL' },
+  { name: "סיבובי ידיים לפנים", duration: 30, svg: 'armCirclesFwd' },
+  { name: "סיבובי ידיים לאחור", duration: 30, svg: 'armCirclesBack' },
+  { name: "חיבוקי חזה דינמיים", duration: 30, svg: 'chestHugs' },
+  { name: "סיבובי פלג גוף עליון", duration: 30, svg: 'torsoTwist' },
+  { name: "גוד מורנינגס", duration: 30, svg: 'goodMornings' },
+  { name: "סיבובי ירך ימין", duration: 30, svg: 'hipRotR' },
+  { name: "סיבובי ירך שמאל", duration: 30, svg: 'hipRotL' },
+  { name: "סקוואט עם הושטה למעלה", duration: 30, svg: 'squatReach' },
+  { name: "נגיעות מרפקים - ידיים מאחורי הראש", duration: 30, svg: 'prisonerElbow' },
+  { name: "מתיחת תפילה הפוכה", duration: 30, svg: 'reversePrayer' },
+  { name: "הרמת ברכיים - ידיים ב-T", duration: 30, svg: 'highKneesT' },
+  { name: "אינצ׳ וורם", duration: 30, svg: 'inchworm' },
+  { name: "לונג׳ לטאה ימין", duration: 30, svg: 'lizardR' },
+  { name: "יונה ימין", duration: 30, svg: 'pigeonR' },
+  { name: "פרפר בישיבה", duration: 30, svg: 'butterfly' },
+  { name: "מפתח ימין", duration: 30, svg: 'halfStraddleR' },
+  { name: "מפתח שמאל", duration: 30, svg: 'halfStraddleL' },
+  { name: "מתיחת ארבע ראשי בכריעה", duration: 30, svg: 'kneelingQuad' },
+  { name: "לונג׳ לטאה שמאל", duration: 30, svg: 'lizardL' },
+  { name: "יונה שמאל", duration: 30, svg: 'pigeonL' },
+  { name: "ברכיים לחזה", duration: 30, svg: 'kneesToChest' },
+  { name: "רוטציה שכיבה ימין", duration: 30, svg: 'spinalTwistR' },
+  { name: "רוטציה שכיבה שמאל", duration: 30, svg: 'spinalTwistL' },
 ];
 
 const STORAGE_KEY = 'morningRoutine_v2';
@@ -1030,14 +1034,37 @@ function finishBeep() {
   setTimeout(() => beep(1400, 0.25), 300);
 }
 
+// Volume ducking for Spotify during beeps/speech
+let spSavedVolume = 0.7;
+let duckTimeout = null;
+
+function duckSpotify() {
+  if (!spPlayer) return;
+  spPlayer.getVolume().then(vol => {
+    if (vol > 0.15) spSavedVolume = vol;
+    spPlayer.setVolume(0.1);
+  });
+  clearTimeout(duckTimeout);
+}
+
+function unduckSpotify(delay = 1500) {
+  clearTimeout(duckTimeout);
+  duckTimeout = setTimeout(() => {
+    if (spPlayer) spPlayer.setVolume(spSavedVolume);
+  }, delay);
+}
+
 function speak(text) {
   if (!('speechSynthesis' in window)) return;
   speechSynthesis.cancel();
+  duckSpotify();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'he-IL'; u.rate = 0.95;
   const voices = speechSynthesis.getVoices();
   const hv = voices.find(v => v.lang.startsWith('he'));
   if (hv) u.voice = hv;
+  u.onend = () => unduckSpotify(500);
+  u.onerror = () => unduckSpotify(500);
   speechSynthesis.speak(u);
 }
 if ('speechSynthesis' in window) {
@@ -1089,9 +1116,9 @@ function updateDisplay() {
   const nl = document.getElementById('nextLabel');
   if (currentIdx < exercises.length - 1) {
     nl.style.display = '';
-    nl.innerHTML = `Next: <strong>${exercises[currentIdx + 1].name}</strong>`;
+    nl.innerHTML = `הבא: <strong>${exercises[currentIdx + 1].name}</strong>`;
   } else {
-    nl.innerHTML = '<strong>Last one!</strong>';
+    nl.innerHTML = '<strong>תרגיל אחרון!</strong>';
   }
 }
 
@@ -1108,7 +1135,7 @@ function tick() {
     }
   } else {
     timeLeft--;
-    if (timeLeft <= 3 && timeLeft > 0) beep(600, 0.1);
+    if (timeLeft <= 3 && timeLeft > 0) { duckSpotify(); beep(600, 0.1); }
     if (timeLeft === 0 && currentIdx < exercises.length - 1) beep(1000, 0.2);
   }
   updateDisplay();
@@ -1193,7 +1220,7 @@ function finishRoutine() {
   const m = Math.floor(elapsed / 60);
   const s = elapsed % 60;
   document.getElementById('completeStats').textContent =
-    `${entry.count} exercises | ${m}:${String(s).padStart(2,'0')} min`;
+    `${entry.count} תרגילים | ${m}:${String(s).padStart(2,'0')} דקות`;
   document.getElementById('completeOverlay').classList.add('show');
 }
 
@@ -1209,7 +1236,7 @@ function updateIdle() {
   const totalSecs = exercises.reduce((a, e) => a + e.duration, 0);
   const mins = Math.round(totalSecs / 60);
   const el = document.getElementById('idleStats');
-  if (el) el.textContent = `${exercises.length} exercises \u2022 ~${mins} min`;
+  if (el) el.textContent = `${exercises.length} תרגילים \u2022 ~${mins} דקות`;
 
   // Last workout
   const lw = document.getElementById('idleLastWorkout');
@@ -1436,15 +1463,15 @@ updateIdle();
 // ===== SPOTIFY WEB PLAYBACK SDK =====
 const SP_CLIENT_ID = '4b448c71c0034789a61dbe7f6e072c02';
 const SP_REDIRECT = window.location.origin + window.location.pathname;
-const SP_SCOPES = 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative';
+const SP_SCOPES = 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private';
 
 const WORKOUT_PLAYLISTS = [
-  { name: 'Workout Beats', uri: 'spotify:playlist:37i9dQZF1DX76Wlfdnj7AP', emoji: '🔥' },
-  { name: 'Beast Mode', uri: 'spotify:playlist:37i9dQZF1DX70RN3TfnE9m', emoji: '💪' },
-  { name: 'Power Workout', uri: 'spotify:playlist:37i9dQZF1DX20hMBPnabgN', emoji: '⚡' },
-  { name: 'Motivation Mix', uri: 'spotify:playlist:37i9dQZF1DXdxcBWuJkbcy', emoji: '🚀' },
-  { name: 'Chilled R&B', uri: 'spotify:playlist:37i9dQZF1DWTbBhNRbGJpF', emoji: '🎵' },
-  { name: 'Morning Motivation', uri: 'spotify:playlist:37i9dQZF1DXc4lzDkZgMhq', emoji: '☀️' },
+  { name: 'Chill R&B', uri: 'spotify:playlist:37i9dQZF1DWTbBhNRbGJpF', emoji: '🎵' },
+  { name: 'Morning R&B', uri: 'spotify:playlist:37i9dQZF1DX2UgsUIg75Vg', emoji: '☀️' },
+  { name: 'R&B Feels', uri: 'spotify:playlist:37i9dQZF1DX2WkIBRaChxW', emoji: '💜' },
+  { name: 'Smooth Vibes', uri: 'spotify:playlist:37i9dQZF1DWTwzVdyRpXm1', emoji: '🌊' },
+  { name: 'Feel Good R&B', uri: 'spotify:playlist:37i9dQZF1DX5UACLLNOkFf', emoji: '😎' },
+  { name: 'Lo-Fi Beats', uri: 'spotify:playlist:37i9dQZF1DWWQRwui0ExPn', emoji: '🎧' },
 ];
 
 let spPlayer = null;
@@ -1740,6 +1767,76 @@ function renderPlaylists() {
     card.onclick = () => playPlaylist(pl.uri);
     grid.appendChild(card);
   });
+}
+
+// Curated chill R&B tracks for morning workout (~25 tracks)
+const MORNING_RNB_TRACKS = [
+  'spotify:track:3hRV0jL3vUpRrcy398teAU', // SZA - Snooze
+  'spotify:track:0O6u0VJ46qDTy9YVA7bIo1', // Daniel Caesar - Best Part
+  'spotify:track:2dHoVW9aNKMKdFC2LQoKxE', // Khalid - Location
+  'spotify:track:7KA4W4McWYRpgf0fWsJZWB', // SZA - The Weekend
+  'spotify:track:3FAJ6O0NOHQV8Mc5Ri6ENp', // Frank Ocean - Thinkin Bout You
+  'spotify:track:5enxwA8aAbwZbf5qCHORXi', // Frank Ocean - Ivy
+  'spotify:track:7ovUcF5uHTBRzUpB6ZOmvt', // Childish Gambino - Redbone
+  'spotify:track:5XeFesFbtLpXzIVDNQP22n', // Kali Uchis - Telepatia
+  'spotify:track:6PQ88X9TkUIAUIZJHW2upE', // Snoh Aalegra - I Want You Around
+  'spotify:track:2nMeu6UenVvwUktBCpLMK9', // HER - Focus
+  'spotify:track:3CeCwYWvdfXbZLKhxkhqDG', // Jorja Smith - On My Mind
+  'spotify:track:2grjqo0Frpf2okIBiifQKs', // Giveon - Heartbreak Anniversary
+  'spotify:track:1z2gkdMBmIEBfhYJfAMPIp', // Brent Faiyaz - Gravity
+  'spotify:track:6v3KW9xbzN5yKLt9YKDYA2', // Summer Walker - Playing Games
+  'spotify:track:0FuBVABRx6FyGmrB4fhSCe', // Lucky Daye - Over
+  'spotify:track:6YUTL4dYpB9xZO5qExPf05', // Jhene Aiko - While We're Young
+  'spotify:track:5sICkBXVmaCQk5aISGR3x1', // Tems - Free Mind
+  'spotify:track:1BxfuPKGuaTgP7aM0Bbdwr', // The Weeknd - Die For You
+  'spotify:track:3dhjNA0jGcusKeWBpCNxKP', // Victoria Monet - On My Mama
+  'spotify:track:4fouWK6XVHhzl78KzQ1UjL', // Sabrina Claudio - Belong To You
+];
+
+async function createMorningPlaylist() {
+  if (!spToken) return;
+  const statusEl = document.getElementById('createPlaylistStatus');
+  statusEl.textContent = 'יוצר פלייליסט...';
+
+  try {
+    // Get user ID
+    const userResp = await fetch('https://api.spotify.com/v1/me', {
+      headers: { 'Authorization': 'Bearer ' + spToken }
+    });
+    const user = await userResp.json();
+
+    // Create playlist
+    const createResp = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + spToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Morning Routine - Chill R&B',
+        description: 'R&B כייפי לאימון בוקר',
+        public: false
+      })
+    });
+    const playlist = await createResp.json();
+
+    // Add tracks
+    await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + spToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uris: MORNING_RNB_TRACKS })
+    });
+
+    // Add to local playlists and play
+    const newPl = { name: 'Morning R&B (שלי)', uri: `spotify:playlist:${playlist.id}`, emoji: '🌅' };
+    WORKOUT_PLAYLISTS.unshift(newPl);
+    renderPlaylists();
+    playPlaylist(newPl.uri);
+
+    statusEl.textContent = 'הפלייליסט נוצר ומנגן!';
+    document.getElementById('createPlaylistBtn').style.display = 'none';
+    setTimeout(() => statusEl.textContent = '', 3000);
+  } catch (e) {
+    statusEl.textContent = 'שגיאה ביצירה, נסה שוב';
+    console.error(e);
+  }
 }
 
 // Auto-init on load
