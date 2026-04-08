@@ -1423,32 +1423,108 @@ let spProgressInterval = null;
 let spCurrentPosition = 0;
 let spCurrentDuration = 0;
 
-function spotifyLogin() {
+// PKCE helpers
+function generateRandomString(length) {
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return values.reduce((acc, x) => acc + possible[x % possible.length], '');
+}
+
+async function sha256(plain) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain);
+  return window.crypto.subtle.digest('SHA-256', data);
+}
+
+function base64urlencode(buf) {
+  let str = '';
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.byteLength; i++) str += String.fromCharCode(bytes[i]);
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function spotifyLogin() {
+  const codeVerifier = generateRandomString(64);
+  localStorage.setItem('sp_code_verifier', codeVerifier);
+  const hashed = await sha256(codeVerifier);
+  const codeChallenge = base64urlencode(hashed);
+
   const params = new URLSearchParams({
     client_id: SP_CLIENT_ID,
-    response_type: 'token',
+    response_type: 'code',
     redirect_uri: SP_REDIRECT,
     scope: SP_SCOPES,
+    code_challenge_method: 'S256',
+    code_challenge: codeChallenge,
     show_dialog: 'false'
   });
   window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
 }
 
-function getTokenFromHash() {
-  const hash = window.location.hash.substring(1);
-  const params = new URLSearchParams(hash);
-  const token = params.get('access_token');
-  if (token) {
-    localStorage.setItem('sp_token', token);
-    const expires = Date.now() + (parseInt(params.get('expires_in') || '3600') * 1000);
-    localStorage.setItem('sp_token_expires', expires);
+async function exchangeCodeForToken(code) {
+  const codeVerifier = localStorage.getItem('sp_code_verifier');
+  if (!codeVerifier) return null;
+
+  const resp = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: SP_CLIENT_ID,
+      grant_type: 'authorization_code',
+      code: code,
+      redirect_uri: SP_REDIRECT,
+      code_verifier: codeVerifier
+    })
+  });
+
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  localStorage.setItem('sp_token', data.access_token);
+  localStorage.setItem('sp_token_expires', Date.now() + (data.expires_in * 1000));
+  if (data.refresh_token) localStorage.setItem('sp_refresh_token', data.refresh_token);
+  localStorage.removeItem('sp_code_verifier');
+  return data.access_token;
+}
+
+async function refreshSpotifyToken() {
+  const refreshToken = localStorage.getItem('sp_refresh_token');
+  if (!refreshToken) return null;
+
+  const resp = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: SP_CLIENT_ID,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken
+    })
+  });
+
+  if (!resp.ok) return null;
+  const data = await resp.json();
+  localStorage.setItem('sp_token', data.access_token);
+  localStorage.setItem('sp_token_expires', Date.now() + (data.expires_in * 1000));
+  if (data.refresh_token) localStorage.setItem('sp_refresh_token', data.refresh_token);
+  return data.access_token;
+}
+
+async function getToken() {
+  // Check for auth code in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  if (code) {
     window.history.replaceState(null, '', window.location.pathname);
-    return token;
+    const token = await exchangeCodeForToken(code);
+    if (token) return token;
   }
+
+  // Check saved token
   const saved = localStorage.getItem('sp_token');
   const exp = localStorage.getItem('sp_token_expires');
   if (saved && exp && Date.now() < parseInt(exp)) return saved;
-  return null;
+
+  // Try refresh
+  return await refreshSpotifyToken();
 }
 
 function initSpotifySDK(token) {
@@ -1633,8 +1709,8 @@ function renderPlaylists() {
 }
 
 // Auto-init on load
-(function initSpotify() {
-  const token = getTokenFromHash();
+(async function initSpotify() {
+  const token = await getToken();
   if (token) {
     initSpotifySDK(token);
   }
