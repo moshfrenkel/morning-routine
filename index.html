@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0c14">
 <title>רוטינת בוקר</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Secular+One&display=swap" rel="stylesheet">
@@ -987,15 +988,65 @@ const DEFAULT_EXERCISES = [
 ];
 
 const STORAGE_KEY = 'morningRoutine_v2';
+const SB_URL = 'https://vvtmzivyeaxlpupxobgn.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2dG16aXZ5ZWF4bHB1cHhvYmduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NjQzODUsImV4cCI6MjA4NjI0MDM4NX0.nOUuBfS4QOwURBnCnhKqlxMRP3h-F19zR-j_uMJHGwc';
+const sb = window.supabase ? window.supabase.createClient(SB_URL, SB_ANON) : null;
 
-function load(key, fallback) {
+// Local fallback
+function loadLocal(key, fallback) {
   try { const d = localStorage.getItem(STORAGE_KEY + '_' + key); return d ? JSON.parse(d) : fallback; }
   catch { return fallback; }
 }
-function save(key, data) { localStorage.setItem(STORAGE_KEY + '_' + key, JSON.stringify(data)); }
+function saveLocal(key, data) { localStorage.setItem(STORAGE_KEY + '_' + key, JSON.stringify(data)); }
 
-let exercises = load('exercises', [...DEFAULT_EXERCISES]);
-let journal = load('journal', []);
+// Supabase sync
+async function syncFromCloud() {
+  if (!sb) return;
+  try {
+    // Load exercises
+    const { data: exData } = await sb.from('morning_exercises')
+      .select('exercises').eq('user_id', 'mosh').order('updated_at', { ascending: false }).limit(1);
+    if (exData && exData.length > 0) {
+      exercises = exData[0].exercises;
+      saveLocal('exercises', exercises);
+    }
+    // Load journal
+    const { data: jData } = await sb.from('morning_journal')
+      .select('*').eq('user_id', 'mosh').order('date', { ascending: false }).limit(100);
+    if (jData && jData.length > 0) {
+      journal = jData.map(j => ({ date: j.date, time: j.time, count: j.count, total: j.total, done: j.done }));
+      saveLocal('journal', journal);
+    }
+  } catch (e) { console.warn('Cloud sync failed, using local:', e); }
+}
+
+async function saveExercisesToCloud() {
+  saveLocal('exercises', exercises);
+  if (!sb) return;
+  try {
+    const { data: existing } = await sb.from('morning_exercises')
+      .select('id').eq('user_id', 'mosh').limit(1);
+    if (existing && existing.length > 0) {
+      await sb.from('morning_exercises').update({ exercises, updated_at: new Date().toISOString() }).eq('id', existing[0].id);
+    } else {
+      await sb.from('morning_exercises').insert({ user_id: 'mosh', exercises });
+    }
+  } catch (e) { console.warn('Cloud save failed:', e); }
+}
+
+async function saveJournalEntry(entry) {
+  saveLocal('journal', journal);
+  if (!sb) return;
+  try {
+    await sb.from('morning_journal').insert({
+      user_id: 'mosh', date: entry.date, time: entry.time,
+      count: entry.count, total: entry.total, done: entry.done
+    });
+  } catch (e) { console.warn('Cloud save failed:', e); }
+}
+
+let exercises = loadLocal('exercises', [...DEFAULT_EXERCISES]);
+let journal = loadLocal('journal', []);
 
 // ===== TIMER STATE =====
 let currentIdx = 0;
@@ -1214,7 +1265,7 @@ function finishRoutine() {
     done: currentIdx >= exercises.length - 1
   };
   journal.unshift(entry);
-  save('journal', journal);
+  saveJournalEntry(entry);
 
   const elapsed = startTime ? Math.round((now - startTime) / 1000) : 0;
   const m = Math.floor(elapsed / 60);
@@ -1310,7 +1361,7 @@ function onDrop(e) {
   if (dragIdx !== null && dragIdx !== to) {
     const [m] = exercises.splice(dragIdx, 1);
     exercises.splice(to, 0, m);
-    save('exercises', exercises);
+    saveExercisesToCloud();
     renderExerciseList();
   }
 }
@@ -1336,7 +1387,7 @@ function onTouchMove(e) {
     const [m] = exercises.splice(tIdx, 1);
     exercises.splice(oi, 0, m);
     tIdx = oi;
-    save('exercises', exercises);
+    saveExercisesToCloud();
     renderExerciseList();
     tItem = document.querySelector(`.ex-item[data-index="${oi}"]`);
     if (tItem) tItem.classList.add('dragging');
@@ -1347,7 +1398,7 @@ function onTouchEnd() { if (tItem) tItem.classList.remove('dragging'); tItem = n
 function deleteExercise(i) {
   if (confirm(`למחוק את "${exercises[i].name}"?`)) {
     exercises.splice(i, 1);
-    save('exercises', exercises);
+    saveExercisesToCloud();
     renderExerciseList();
     updateIdle();
   }
@@ -1356,7 +1407,7 @@ function deleteExercise(i) {
 function resetExercises() {
   if (confirm('לאפס את הרשימה לתרגילים המקוריים?')) {
     exercises = [...DEFAULT_EXERCISES];
-    save('exercises', exercises);
+    saveExercisesToCloud();
     renderExerciseList();
     updateIdle();
   }
@@ -1403,7 +1454,7 @@ function saveExercise() {
     exercises.push({ name, duration, emoji });
   }
 
-  save('exercises', exercises);
+  saveExercisesToCloud();
   closeModal();
   renderExerciseList();
   updateIdle();
@@ -1459,6 +1510,7 @@ function calcStreak() {
 
 // ===== INIT =====
 updateIdle();
+syncFromCloud().then(() => { updateIdle(); });
 
 // ===== SPOTIFY WEB PLAYBACK SDK =====
 const SP_CLIENT_ID = '4b448c71c0034789a61dbe7f6e072c02';
