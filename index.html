@@ -214,6 +214,9 @@ body::after {
   border: 2px solid rgba(255,255,255,0.08);
   position: relative;
 }
+.ex-illustration svg.ex-svg {
+  width: 65%; height: 65%;
+}
 .ex-illustration.active::after {
   content: '';
   position: absolute; inset: -6px;
@@ -726,7 +729,7 @@ body::after {
   <div class="idle-view" id="idleView">
     <div class="idle-greeting rv on" id="idleGreeting">בוקר טוב, מוש</div>
     <h1 class="idle-title rv on rv-d1">רוטינת<br><span class="accent">בוקר</span></h1>
-    <p class="idle-stats rv on rv-d2" id="idleStats">25 תרגילים &bull; ~13 דקות</p>
+    <p class="idle-stats rv on rv-d2" id="idleStats">23 exercises &bull; ~12 min</p>
     <button class="start-btn rv on rv-d3" onclick="startRoutine()">יאללה מתחילים</button>
     <div class="idle-last-workout rv on rv-d3" id="idleLastWorkout"></div>
   </div>
@@ -736,8 +739,8 @@ body::after {
     <div class="exercise-display">
       <div class="ex-progress-bar"><div class="ex-progress-fill" id="progressFill"></div></div>
       <div class="ex-counter" id="exCounter">תרגיל 1 מתוך 25</div>
-      <div class="ex-illustration active" id="exIllustration">🔄</div>
-      <div class="ex-name" id="exName">סיבובי ידיים לפנים</div>
+      <div class="ex-illustration active" id="exIllustration"></div>
+      <div class="ex-name" id="exName">Forward Arm Circles</div>
       <div class="timer-container">
         <svg class="timer-svg" viewBox="0 0 160 160">
           <circle class="timer-track" cx="80" cy="80" r="70"/>
@@ -746,7 +749,7 @@ body::after {
         </svg>
         <div class="timer-digits" id="timerText">30</div>
       </div>
-      <div class="next-label" id="nextLabel">הבא: <strong>סיבובי ידיים לאחור</strong></div>
+      <div class="next-label" id="nextLabel">Next: <strong>Backward Arm Circles</strong></div>
     </div>
     <div class="workout-player" id="workoutMiniPlayer" style="display:none">
       <div class="sp-now-playing">
@@ -926,32 +929,57 @@ body::after {
 
 <script>
 // ===== EXERCISE DATA =====
+// SVG stick figures for each exercise
+const EX_SVG = {
+  armCirclesFwd: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 C70 20 75 50 55 50" stroke-dasharray="3 3"/><circle cx="55" cy="50" r="2" fill="var(--c-teal)"/><path d="M50 36 C30 20 25 50 45 50" stroke-dasharray="3 3"/></svg>`,
+  armCirclesBack: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-orange)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 C30 52 35 22 55 30" stroke-dasharray="3 3"/><circle cx="55" cy="30" r="2" fill="var(--c-orange)"/><path d="M50 36 C70 52 65 22 45 30" stroke-dasharray="3 3"/></svg>`,
+  chestHugs: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M28 32 Q50 48 72 32" opacity="0.4"/><path d="M72 32 Q50 48 28 32"/></svg>`,
+  torsoTwist: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><path d="M50 25 Q55 42 50 58"/><line x1="50" y1="58" x2="38" y2="82"/><line x1="50" y1="58" x2="62" y2="82"/><line x1="50" y1="38" x2="26" y2="34"/><line x1="50" y1="38" x2="74" y2="42"/><path d="M44 14 L56 14" stroke="var(--c-orange)" stroke-dasharray="2 2"/></svg>`,
+  goodMornings: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="72" cy="30" r="7"/><path d="M65 32 L32 42"/><line x1="32" y1="42" x2="22" y2="36"/><line x1="32" y1="42" x2="32" y2="82"/><line x1="32" y1="82" x2="22" y2="92"/><line x1="32" y1="82" x2="42" y2="92"/></svg>`,
+  hipRotR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="55"/><line x1="50" y1="38" x2="32" y2="30"/><line x1="50" y1="38" x2="68" y2="30"/><line x1="50" y1="55" x2="38" y2="82"/><path d="M50 55 Q68 62 64 78" stroke="var(--c-orange)"/><path d="M58 62 Q72 55 68 68" stroke-dasharray="3 3" opacity="0.5"/></svg>`,
+  hipRotL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="55"/><line x1="50" y1="38" x2="32" y2="30"/><line x1="50" y1="38" x2="68" y2="30"/><line x1="50" y1="55" x2="62" y2="82"/><path d="M50 55 Q32 62 36 78" stroke="var(--c-orange)"/><path d="M42 62 Q28 55 32 68" stroke-dasharray="3 3" opacity="0.5"/></svg>`,
+  squatReach: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="22" r="7"/><line x1="50" y1="29" x2="50" y2="52"/><line x1="50" y1="36" x2="34" y2="12"/><line x1="50" y1="36" x2="66" y2="12"/><path d="M50 52 Q40 68 32 78"/><path d="M50 52 Q60 68 68 78"/><circle cx="34" cy="10" r="2" fill="var(--c-orange)"/><circle cx="66" cy="10" r="2" fill="var(--c-orange)"/></svg>`,
+  prisonerElbow: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 L34 26 L38 14"/><path d="M50 36 L66 26 L62 14"/><line x1="38" y1="14" x2="62" y2="14" stroke="var(--c-orange)" stroke-dasharray="3 3"/></svg>`,
+  reversePrayer: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="58"/><line x1="50" y1="58" x2="36" y2="82"/><line x1="50" y1="58" x2="64" y2="82"/><path d="M50 36 L42 48 L48 52"/><path d="M50 36 L58 48 L52 52"/><line x1="48" y1="52" x2="52" y2="52" stroke="var(--c-orange)"/></svg>`,
+  highKneesT: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="18" r="7"/><line x1="50" y1="25" x2="50" y2="55"/><line x1="50" y1="36" x2="22" y2="36"/><line x1="50" y1="36" x2="78" y2="36"/><line x1="50" y1="55" x2="40" y2="82"/><path d="M50 55 L60 55 L58 42" stroke="var(--c-orange)" stroke-width="3"/></svg>`,
+  inchworm: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="22" cy="42" r="6"/><path d="M28 44 L50 52 L72 70"/><line x1="72" y1="70" x2="62" y2="86"/><line x1="72" y1="70" x2="82" y2="86"/><line x1="22" y1="48" x2="16" y2="58"/><line x1="22" y1="48" x2="28" y2="58"/></svg>`,
+  lizardR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="28" cy="38" r="6"/><path d="M28 44 L40 54 L60 54"/><path d="M40 54 L28 78" stroke="var(--c-orange)" stroke-width="3"/><line x1="28" y1="78" x2="22" y2="78"/><path d="M60 54 L78 74"/><line x1="78" y1="74" x2="82" y2="82"/><line x1="22" y1="44" x2="18" y2="56"/><line x1="34" y1="44" x2="36" y2="56"/></svg>`,
+  pigeonR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="38" cy="30" r="6"/><line x1="38" y1="36" x2="38" y2="56"/><path d="M38 56 L26 62 L34 62" stroke="var(--c-orange)"/><path d="M38 56 L62 68 L74 78"/><line x1="38" y1="42" x2="28" y2="36"/><line x1="38" y1="42" x2="48" y2="36"/></svg>`,
+  butterfly: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="26" r="7"/><line x1="50" y1="33" x2="50" y2="58"/><path d="M50 58 L34 68 L50 72" stroke="var(--c-orange)"/><path d="M50 58 L66 68 L50 72" stroke="var(--c-orange)"/><path d="M34 68 L24 58" stroke-dasharray="3 3" opacity="0.5"/><path d="M66 68 L76 58" stroke-dasharray="3 3" opacity="0.5"/></svg>`,
+  halfStraddleR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="30" r="6"/><path d="M50 36 L56 48 L62 56"/><path d="M50 56 L30 72" stroke="var(--c-orange)"/><path d="M50 56 L74 68"/><path d="M56 42 L70 36" stroke-dasharray="3 3"/><circle cx="70" cy="36" r="2" fill="var(--c-teal)"/></svg>`,
+  halfStraddleL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="50" cy="30" r="6"/><path d="M50 36 L44 48 L38 56"/><path d="M50 56 L70 72" stroke="var(--c-orange)"/><path d="M50 56 L26 68"/><path d="M44 42 L30 36" stroke-dasharray="3 3"/><circle cx="30" cy="36" r="2" fill="var(--c-teal)"/></svg>`,
+  kneelingQuad: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="42" cy="22" r="6"/><line x1="42" y1="28" x2="42" y2="52"/><path d="M42 52 L42 72 L42 82"/><path d="M42 52 L58 72 L68 62" stroke="var(--c-orange)"/><line x1="42" y1="38" x2="30" y2="32"/><path d="M42 38 L56 30 L62 22"/></svg>`,
+  lizardL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="72" cy="38" r="6"/><path d="M72 44 L60 54 L40 54"/><path d="M60 54 L72 78" stroke="var(--c-orange)" stroke-width="3"/><line x1="72" y1="78" x2="78" y2="78"/><path d="M40 54 L22 74"/><line x1="22" y1="74" x2="18" y2="82"/><line x1="78" y1="44" x2="82" y2="56"/><line x1="66" y1="44" x2="64" y2="56"/></svg>`,
+  pigeonL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="62" cy="30" r="6"/><line x1="62" y1="36" x2="62" y2="56"/><path d="M62 56 L74 62 L66 62" stroke="var(--c-orange)"/><path d="M62 56 L38 68 L26 78"/><line x1="62" y1="42" x2="72" y2="36"/><line x1="62" y1="42" x2="52" y2="36"/></svg>`,
+  kneesToChest: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="28" cy="50" r="6"/><line x1="34" y1="50" x2="62" y2="50"/><path d="M62 50 L68 38 L56 34" stroke="var(--c-orange)"/><path d="M62 50 L68 62 L56 66" stroke="var(--c-orange)"/><path d="M34 50 L40 40"/><path d="M34 50 L40 60"/></svg>`,
+  spinalTwistR: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="24" cy="50" r="6"/><line x1="30" y1="50" x2="60" y2="50"/><line x1="60" y1="50" x2="76" y2="42"/><path d="M60 50 L68 66 L54 74" stroke="var(--c-orange)"/><line x1="24" y1="44" x2="20" y2="32"/><line x1="24" y1="56" x2="20" y2="68"/></svg>`,
+  spinalTwistL: `<svg class="ex-svg" viewBox="0 0 100 100" fill="none" stroke="var(--c-teal)" stroke-width="2.5" stroke-linecap="round"><circle cx="24" cy="50" r="6"/><line x1="30" y1="50" x2="60" y2="50"/><line x1="60" y1="50" x2="76" y2="58"/><path d="M60 50 L68 34 L54 26" stroke="var(--c-orange)"/><line x1="24" y1="44" x2="20" y2="32"/><line x1="24" y1="56" x2="20" y2="68"/></svg>`,
+};
+
 const DEFAULT_EXERCISES = [
-  { name: "סיבובי ידיים לפנים", duration: 30, emoji: "🔄" },
-  { name: "סיבובי ידיים לאחור", duration: 30, emoji: "🔃" },
-  { name: "חיבוק - פתיחה", duration: 30, emoji: "🤗" },
-  { name: "רוטציות אגן", duration: 30, emoji: "🔁" },
-  { name: "גוד מורנינגס", duration: 30, emoji: "🙇" },
-  { name: "סיבובי ירך לפנים ימין", duration: 30, emoji: "🦵" },
-  { name: "סיבובי ירך לפנים שמאל", duration: 30, emoji: "🦵" },
-  { name: "סיבובי ירך לאחור ימין", duration: 30, emoji: "🔄" },
-  { name: "סיבובי ירך לאחור שמאל", duration: 30, emoji: "🔄" },
-  { name: "סקוואט נגיעה בריצפה וידיים לתיקרה", duration: 30, emoji: "🏋️" },
-  { name: "פתיחה - סגירה חזה", duration: 30, emoji: "💪" },
-  { name: "פרפר", duration: 30, emoji: "🦋" },
-  { name: "הרמת בירכיים - ידיים ב T", duration: 30, emoji: "🙆" },
-  { name: "אינץ׳ וורם", duration: 30, emoji: "🐛" },
-  { name: "הרחקת ירך ימין", duration: 30, emoji: "🦿" },
-  { name: "יונה - ימין", duration: 30, emoji: "🕊️" },
-  { name: "פרפר ישיבה", duration: 30, emoji: "🧘" },
-  { name: "מפתח ימין", duration: 30, emoji: "🔑" },
-  { name: "מפתח שמאל", duration: 30, emoji: "🔑" },
-  { name: "ארבע ראשי", duration: 30, emoji: "🦵" },
-  { name: "הרחקת ירך שמאל", duration: 30, emoji: "🦿" },
-  { name: "יונה שמאל", duration: 30, emoji: "🕊️" },
-  { name: "בירכיים לחזה", duration: 30, emoji: "🧎" },
-  { name: "רוטציה ימין", duration: 30, emoji: "↩️" },
-  { name: "רוטציה שמאל", duration: 30, emoji: "↪️" }
+  { name: "Forward Arm Circles", duration: 30, svg: 'armCirclesFwd' },
+  { name: "Backward Arm Circles", duration: 30, svg: 'armCirclesBack' },
+  { name: "Dynamic Chest Hugs", duration: 30, svg: 'chestHugs' },
+  { name: "Standing Torso Twist", duration: 30, svg: 'torsoTwist' },
+  { name: "Bodyweight Good Mornings", duration: 30, svg: 'goodMornings' },
+  { name: "Standing Right Hip Rotation", duration: 30, svg: 'hipRotR' },
+  { name: "Standing Left Hip Rotation", duration: 30, svg: 'hipRotL' },
+  { name: "Squat and Reach", duration: 30, svg: 'squatReach' },
+  { name: "Prisoner Elbow Touches", duration: 30, svg: 'prisonerElbow' },
+  { name: "Reverse Prayer Stretch", duration: 30, svg: 'reversePrayer' },
+  { name: "High Knees with T-Arms", duration: 30, svg: 'highKneesT' },
+  { name: "Inchworm Walkouts", duration: 30, svg: 'inchworm' },
+  { name: "Right Lizard Lunge", duration: 30, svg: 'lizardR' },
+  { name: "Right Pigeon Pose", duration: 30, svg: 'pigeonR' },
+  { name: "Seated Butterfly Stretch", duration: 30, svg: 'butterfly' },
+  { name: "Right Half Straddle", duration: 30, svg: 'halfStraddleR' },
+  { name: "Left Half Straddle", duration: 30, svg: 'halfStraddleL' },
+  { name: "Kneeling Quad Stretch", duration: 30, svg: 'kneelingQuad' },
+  { name: "Left Lizard Lunge", duration: 30, svg: 'lizardL' },
+  { name: "Left Pigeon Pose", duration: 30, svg: 'pigeonL' },
+  { name: "Knees to Chest", duration: 30, svg: 'kneesToChest' },
+  { name: "Spinal Twist (Right)", duration: 30, svg: 'spinalTwistR' },
+  { name: "Spinal Twist (Left)", duration: 30, svg: 'spinalTwistL' },
 ];
 
 const STORAGE_KEY = 'morningRoutine_v2';
@@ -1033,8 +1061,10 @@ function updateDisplay() {
   const total = ex.duration;
 
   document.getElementById('exName').textContent = ex.name;
-  document.getElementById('exIllustration').textContent = ex.emoji;
-  document.getElementById('exCounter').textContent = `תרגיל ${currentIdx + 1} מתוך ${exercises.length}`;
+  const illEl = document.getElementById('exIllustration');
+  if (ex.svg && EX_SVG[ex.svg]) illEl.innerHTML = EX_SVG[ex.svg];
+  else illEl.textContent = ex.emoji || '🏋️';
+  document.getElementById('exCounter').textContent = `${currentIdx + 1} / ${exercises.length}`;
   document.getElementById('timerText').textContent = timeLeft;
 
   // Progress bar
@@ -1059,9 +1089,9 @@ function updateDisplay() {
   const nl = document.getElementById('nextLabel');
   if (currentIdx < exercises.length - 1) {
     nl.style.display = '';
-    nl.innerHTML = `הבא: <strong>${exercises[currentIdx + 1].name}</strong>`;
+    nl.innerHTML = `Next: <strong>${exercises[currentIdx + 1].name}</strong>`;
   } else {
-    nl.innerHTML = '<strong>תרגיל אחרון!</strong>';
+    nl.innerHTML = '<strong>Last one!</strong>';
   }
 }
 
@@ -1163,7 +1193,7 @@ function finishRoutine() {
   const m = Math.floor(elapsed / 60);
   const s = elapsed % 60;
   document.getElementById('completeStats').textContent =
-    `${entry.count} תרגילים | ${m}:${String(s).padStart(2,'0')} דקות`;
+    `${entry.count} exercises | ${m}:${String(s).padStart(2,'0')} min`;
   document.getElementById('completeOverlay').classList.add('show');
 }
 
@@ -1179,7 +1209,7 @@ function updateIdle() {
   const totalSecs = exercises.reduce((a, e) => a + e.duration, 0);
   const mins = Math.round(totalSecs / 60);
   const el = document.getElementById('idleStats');
-  if (el) el.textContent = `${exercises.length} תרגילים \u2022 ~${mins} דקות`;
+  if (el) el.textContent = `${exercises.length} exercises \u2022 ~${mins} min`;
 
   // Last workout
   const lw = document.getElementById('idleLastWorkout');
@@ -1223,7 +1253,7 @@ function renderExerciseList() {
     el.innerHTML = `
       <div class="ex-drag">⠿</div>
       <div class="ex-num">${i + 1}</div>
-      <div class="ex-emoji">${ex.emoji}</div>
+      <div class="ex-emoji">${ex.svg && EX_SVG[ex.svg] ? '<span style="display:inline-flex;width:28px;height:28px">' + EX_SVG[ex.svg] + '</span>' : (ex.emoji || '🏋️')}</div>
       <div class="ex-info">
         <div class="ex-info-name">${ex.name}</div>
         <div class="ex-info-dur">${ex.duration} שניות</div>
@@ -1339,8 +1369,12 @@ function saveExercise() {
   const emoji = document.getElementById('modalEmoji').value || '🏋️';
   if (!name) return;
 
-  if (editIdx >= 0) exercises[editIdx] = { name, duration, emoji };
-  else exercises.push({ name, duration, emoji });
+  if (editIdx >= 0) {
+    const existing = exercises[editIdx];
+    exercises[editIdx] = { name, duration, emoji, ...(existing.svg ? { svg: existing.svg } : {}) };
+  } else {
+    exercises.push({ name, duration, emoji });
+  }
 
   save('exercises', exercises);
   closeModal();
