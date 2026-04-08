@@ -107,7 +107,7 @@ body::after {
 .nav-btn svg { width: 22px; height: 22px; }
 
 /* ===== SCREENS ===== */
-.screen { display: none; padding: var(--pad); }
+.screen { display: none; padding: var(--pad); overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .screen.active { display: block; }
 
 .screen-header {
@@ -396,8 +396,7 @@ body::after {
   border-radius: var(--radius-s);
   padding: 12px 14px;
   display: flex; align-items: center; gap: 10px;
-  cursor: grab; position: relative;
-  touch-action: none;
+  position: relative;
   transition: opacity 0.2s, border-color 0.2s;
 }
 .ex-item.dragging { opacity: 0.4; border-color: var(--c-teal); }
@@ -407,6 +406,7 @@ body::after {
   display: flex; align-items: center;
   min-width: 20px;
   font-size: 1rem;
+  touch-action: none;
 }
 .ex-num {
   font-size: var(--t-tiny); color: var(--c-text-dim);
